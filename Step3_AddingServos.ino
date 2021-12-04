@@ -1,8 +1,8 @@
 //Candy Dispenser with three seperate containers and button for candy selection
-//Step 2: Adding the LEDs for different modes and testing to switch between these
+//Step 4: Trying to optimize the code by attaching an interrupt to the pushbutton
 //Pins Servos: 9, 10, 13
 //Pins LEDs: 8, 7, 6
-//Pin Pushbutton: 4
+//Pin Pushbutton: 2
 //Pins Ultrasonic Sensor: 11, 12
 
 //All Servos
@@ -28,9 +28,9 @@ const int pinLED2 = 7;
 const int pinLED3 = 6;
 
 //Pushbutton
-const int pinButton = 4;
-int buttonStateOld = 1; // 0 = pressed, 1 = not pressed
-int buttonStateNew;
+const int pinButton = 2;
+volatile int buttonStateOld = 1; // 0 = pressed, 1 = not pressed
+volatile int buttonStateNew;
 
 //Ultrasonic Sensor
 const int trigPin = 11;
@@ -38,13 +38,19 @@ const int echoPin = 12;
 int pingTime; //time the Ping needs to travel
 
 //General
-int candyMode = 0; // 0 - 1 - 2
+volatile int candyMode = 0; // 0 - 1 - 2
 const int candyLED[] = {pinLED1, pinLED2, pinLED3};
 const int candyOff1[] = {pinLED2, pinLED3, pinLED1};
 const int candyOff2[] = {pinLED3, pinLED1, pinLED2};
 const int openTime = 2000;
-const int delayTime = 250;
+const int delayTime = 150; //increase for troubleshooting
 const int microDelay = 10;
+
+//Interrupt
+void buttonISR()
+{
+  candyMode = (candyMode + 1) % 3;
+}
 
 void setup() {
   Serial.begin(9600); //for Troubleshooting
@@ -65,6 +71,9 @@ void setup() {
   //Ultrasonic Sensor
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
+
+  //Interrupt
+  attachInterrupt(digitalPinToInterrupt(pinButton), buttonISR, RISING);
 }
 
 void loop() {
@@ -73,16 +82,6 @@ void loop() {
   servo1.write(servoClosed);
   servo2.write(servoClosed);
   servo3.write(servoClosed);
-
-  //checking the candy mode
-  buttonStateNew = digitalRead(pinButton);
-
-  //switching candy mode
-  if (buttonStateOld == 0 && buttonStateNew == 1)
-  { //checks if button was pressed -> switches combo when not pressed anymore
-    candyMode = (candyMode + 1) % 3;
-  }
-  buttonStateOld = buttonStateNew;
 
   //controlling LEDs
   digitalWrite(candyLED[candyMode], HIGH);
@@ -124,5 +123,5 @@ void loop() {
     }
   }
 
-  delay(delayTime);
+  delay(delayTime); //increase for troubleshooting
 }
