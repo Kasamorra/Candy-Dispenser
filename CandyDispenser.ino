@@ -45,6 +45,7 @@ const int candyOff1[] = {pinLED2, pinLED3, pinLED1}; //LED of one of the non-cho
 const int candyOff2[] = {pinLED3, pinLED1, pinLED2}; //LED of the other non-chosen container 
 const int openTime = 2000; //time the dispenser stays open
 const int delayTime = 150; //increase for troubleshooting
+const int pingTimeLimit = 280; //time it should take the ping to travel if dispenser activated
 
 //Interrupt -> gets called every time button gets pressed and released
 void buttonISR()
@@ -101,7 +102,7 @@ void loop() {
   Serial.println(pingTime);
 
   //checking if candy is to be dispensed
-  if (pingTime < 250)
+  if (pingTime < pingTimeLimit)
   {
     switch (candyMode)
     {
